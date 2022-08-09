@@ -81,15 +81,17 @@ echo "***********************"
 # Checking for status of the cluster and performing 10 minute waits and re checks. 
 
 gkeClusterStatus=$(gcloud container clusters list --format="value(STATUS.scope())")
-$status="RUNNING"
-if ["$gkeClusterStatus" != "$status"]
+status="RUNNING"
+if [ "$gkeClusterStatus" != "$status" ]
 then
-    until ["$gkeClusterStatus" == "$status" ]
+    until [ "$gkeClusterStatus" == "$status" ]
     do
-    echo "GKE Cluster is not fully ready yet. Waiting 5 minutes to check again"
-    sleep 5m
+    echo "GKE Cluster is not fully ready yet. Waiting 10 minutes to check again"
+    sleep 10m
     gkeClusterStatus=$(gcloud container clusters list --format="value(STATUS.scope())")
     done
+else
+    echo "GKE Cluster is in a RUNNING state"
 fi
 
 echo "***********************"
@@ -100,10 +102,6 @@ dir=platform/terraform/3-gcp-posttasks/1-certs
 cd ${dir}   
 env=${dir%*/}
 env=${env#*/}  
-echo ""
-echo "*************** TERRAFOM ******************"
-echo "******* At environment: ${env} ********"
-echo "*************************************************"
 terraform init || exit 1
 terraform apply -auto-approve || exit 1
 
@@ -117,10 +115,6 @@ dir=platform/terraform/3-gcp-posttasks/2-thirdparty
 cd ${dir}   
 env=${dir%*/}
 env=${env#*/}  
-echo ""
-echo "*************** TERRAFOM ******************"
-echo "******* At environment: ${env} ********"
-echo "*************************************************"
 terraform init || exit 1
 terraform apply -auto-approve || exit 1
 
@@ -142,10 +136,6 @@ dir=platform/terraform/3-gcp-posttasks/3-consul-mssql
 cd ${dir}   
 env=${dir%*/}
 env=${env#*/}  
-echo ""
-echo "*************** TERRAFOM ******************"
-echo "******* At environment: ${env} ********"
-echo "*************************************************"
 terraform init || exit 1
 terraform apply -auto-approve || exit 1
 
@@ -159,10 +149,6 @@ dir=platform/terraform/3-gcp-posttasks/4-pullsecret
 cd ${dir}   
 env=${dir%*/}
 env=${env#*/}  
-echo ""
-echo "*************** TERRAFOM ******************"
-echo "******* At environment: ${env} ********"
-echo "*************************************************"
 terraform init || exit 1
 terraform apply -auto-approve || exit 1
 
@@ -177,8 +163,9 @@ echo "***********************"
 # Checking for status of the cluster and performing 10 minute waits and re checks. 
 
 gkeClusterStatus=$(gcloud container clusters list --format="value(STATUS.scope())")
-$status="RUNNING"
-if ["$gkeClusterStatus" != "$status"]
+status="RUNNING"
+
+if [ "$gkeClusterStatus" != "$status" ]
 then
     until ["$gkeClusterStatus" == "$status" ]
     do
@@ -186,6 +173,8 @@ then
     sleep 10m
     gkeClusterStatus=$(gcloud container clusters list --format="value(STATUS.scope())")
     done
+else
+    echo "GKE Cluster is in a RUNNING state"
 fi
 
 echo "Enable Filestore CSI driver...this can take over an hour to enable"
