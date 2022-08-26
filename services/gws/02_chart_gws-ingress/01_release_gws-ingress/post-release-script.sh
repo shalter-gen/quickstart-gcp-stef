@@ -14,5 +14,6 @@ ls -lr
 
 #chmod +x ../../misc_genesys_config.sh
 #../../misc_genesys_config.sh all $DOMAIN
+chmod +x ./misc_genesys_config.sh
 ./misc_genesys_config.sh all $DOMAIN
 
