@@ -1,0 +1,5 @@
+[
+    {"name": "readonly@pec.com", "firstName": "Henry", "lastName": "Frasers", "accessGroups": "[\\\"Administrators\\\",\\\"t100 Administrators\\\"]"},
+    {"name": "adm@pec.com", "firstName": "Willy", "lastName": "Bolling", "accessGroups": "[\\\"Administrators\\\", \\\"t100 Administrators\\\"]"},
+    {"name": "sadm@pec.com", "firstName": "Sarah", "lastName": "Fraser", "accessGroups": "[\\\"Super Administrators\\\"]"}
+]
