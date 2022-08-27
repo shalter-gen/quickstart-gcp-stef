@@ -17,14 +17,14 @@ echo domain=$domain
 gauth_client_id=external_api_client
 gauth_client_secret=secret
 
-gauth_user_name=default
+gauth_user_name=t100\\default
 gauth_user_pass=password
 userPassword="Genesys1234"
 
 ###++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 GET_TOKEN()
 {
-    curl --location --request POST https://gauth.$domain/auth/v3/oauth/token --user $gauth_client_id:$gauth_client_secret --header 'Content-Type: application/x-www-form-urlencoded' --data-urlencode username=$gauth_user_name --data-urlencode 'client_id=external_api_client' --data-urlencode 'grant_type=password' --data-urlencode password=$gauth_user_pass | tee RSP
+    curl -k --location --request POST https://gauth.$domain/auth/v3/oauth/token --user $gauth_client_id:$gauth_client_secret --header 'Content-Type: application/x-www-form-urlencoded' --data-urlencode username=$gauth_user_name --data-urlencode 'client_id=external_api_client' --data-urlencode 'grant_type=password' --data-urlencode password=$gauth_user_pass | tee RSP
 
     [[ $(cat RSP | jq .token_type) != "\"bearer\"" ]] && echo "ERROR: Could not get token from Gauth. Got: "$(cat RSP) && exit 1
     gauth_token=$(cat RSP | jq -r '.access_token')
@@ -33,8 +33,26 @@ GET_TOKEN()
 }
 
 INIT_PROVISIONING() {
-    curl --location --request POST https://gws.$domain/provisioning/v3/initialize-provisioning --header "Authorization: Bearer $gauth_token" | tee RSP
-    [[ $(cat RSP | jq -r '.status.code') != "0" ]] && echo "ERROR: Could not Initialise Provisioning. Got: "$(cat RSP) && exit 1
+    x=1
+    while [ $x -le 60 ]
+    do
+        curl -k --location --request POST https://gws.$domain/provisioning/v3/initialize-provisioning --header "Authorization: Bearer $gauth_token" | tee RSP
+        if [[ $(cat RSP | jq -r '.status.code') != "0" ]]; then
+            echo "Provisioning not ready yet...sleeping for 10 seconds...got: "$(cat RSP)
+            sleep 10
+        else
+            echo "Provisioning ready...got: "$(cat RSP)
+            sleep 10
+            return
+        fi
+        [[ $(cat RSP | jq -r '.status.code') != "0" ]] && echo "ERROR: Could not Initialise Provisioning. Got: "$(cat RSP) && 
+        x=$(( $x + 1 ))
+    done
+
+    exit
+
+    #curl -k --location --request POST https://gws.$domain/provisioning/v3/initialize-provisioning_ --header "Authorization: Bearer $gauth_token" | tee RSP
+    #[[ $(cat RSP | jq -r '.status.code') != "0" ]] && echo "ERROR: Could not Initialise Provisioning. Got: "$(cat RSP) && exit 1
 }
 
 AGT_GRP_UPDATE()
@@ -67,19 +85,19 @@ EOF
 
 CREATE_OBJECT() {
     #Signature: CREATE_OBJECT "object-type" "alternate-result-code" "url" "body"
-    curl --location --request POST https://gws.$domain/provisioning/v3/$3 --header "Authorization: Bearer $gauth_token" -H 'Content-Type: application/json' -d "$(LOAD_TEMPLATE $4)" | tee RSP
+    curl -k --location --request POST https://gws.$domain/provisioning/v3/$3 --header "Authorization: Bearer $gauth_token" -H 'Content-Type: application/json' -d "$(LOAD_TEMPLATE $4)" | tee RSP
     [[ $(cat RSP | jq -r '.status.code') != "0" && $(cat RSP | jq -r '.status.code') != "$2" ]] && echo "ERROR: Could not Create Object of type [$1]. Got: "$(cat RSP) && exit 1
 }
 
 GET_OBJECT() {
     #Signature: GET_OBJECT "object-type" "url"
-    curl --location --request GET https://gws.$domain/provisioning/v3/$2 --header "Authorization: Bearer $gauth_token" | tee RSP
+    curl -k --location --request GET https://gws.$domain/provisioning/v3/$2 --header "Authorization: Bearer $gauth_token" | tee RSP
     [[ $(cat RSP | jq -r '.status.code') != "0" ]] && echo "ERROR: Could not GET Object of type [$1]. Got: "$(cat RSP) && exit 1
 }
 
 UPDATE_OBJECT() {
     #Signature: CREUPDATE_OBJECTATE_OBJECT "object-type" "alternate-result-code" "url" "body"
-    curl --location --request PUT https://gws.$domain/provisioning/v3/$3 --header "Authorization: Bearer $gauth_token" -H 'Content-Type: application/json' -d "$4" | tee RSP
+    curl -k --location --request PUT https://gws.$domain/provisioning/v3/$3 --header "Authorization: Bearer $gauth_token" -H 'Content-Type: application/json' -d "$4" | tee RSP
     [[ $(cat RSP | jq -r '.status.code') != "0" && $(cat RSP | jq -r '.status.code') != "$2" ]] && echo "ERROR: Could not PUT Object of type [$1]. Got: "$(cat RSP) && exit 1
 }
 
