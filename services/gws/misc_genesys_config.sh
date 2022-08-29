@@ -50,9 +50,6 @@ INIT_PROVISIONING() {
     done
 
     exit
-
-    #curl -k --location --request POST https://gws.$domain/provisioning/v3/initialize-provisioning_ --header "Authorization: Bearer $gauth_token" | tee RSP
-    #[[ $(cat RSP | jq -r '.status.code') != "0" ]] && echo "ERROR: Could not Initialise Provisioning. Got: "$(cat RSP) && exit 1
 }
 
 AGT_GRP_UPDATE()
@@ -77,10 +74,10 @@ EOF
 
 LOAD_TEMPLATE()
 {
-eval "cat <<EOF
-$(<$1)
-EOF
-" 2> /dev/null
+    eval "cat <<EOF
+    $(<$1)
+    EOF
+    " 2> /dev/null
 }
 
 CREATE_OBJECT() {
