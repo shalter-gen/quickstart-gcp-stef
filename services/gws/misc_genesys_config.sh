@@ -76,7 +76,6 @@ LOAD_TEMPLATE()
 {
     eval "cat <<EOF
     $(<$1)
-    EOF
     " 2> /dev/null
 }
 
